@@ -15,7 +15,17 @@ const DAYS: [&'static str; 7] = [
     "Sunday",
     "Monday",
     "Tuesday",
-    "Wednesday"
+    "Wednesday",
+];
+
+const DAYS_REV: [&'static str; 7] = [
+    "Thursday", // unix epoch started on a thursday
+    "Wednesday",
+    "Tuesday",
+    "Monday",
+    "Sunday",
+    "Saturday",
+    "Friday",
 ];
 
 const MONTHS: [&'static str; 12] = [
@@ -33,6 +43,21 @@ const MONTHS: [&'static str; 12] = [
     "December",
 ];
 
+const MONTHS_REV: [&'static str; 12] = [
+    "January",
+    "December",
+    "November",
+    "October",
+    "September",
+    "August",
+    "July",
+    "June",
+    "May",
+    "April",
+    "March",
+    "February",
+];
+
 const MONTH_MAX_DAY: [[usize; 2]; 12] = [
     [ 31, 31, ], // January
     [ 28, 29, ], // February
@@ -46,6 +71,21 @@ const MONTH_MAX_DAY: [[usize; 2]; 12] = [
     [ 31, 31, ], // October
     [ 30, 30, ], // November
     [ 31, 31, ], // December
+];
+
+const MONTH_MAX_DAY_REV: [[usize; 2]; 12] = [
+    [ 31, 31, ], // January
+    [ 31, 31, ], // December
+    [ 30, 30, ], // November
+    [ 31, 31, ], // October
+    [ 30, 30, ], // September
+    [ 31, 31, ], // August
+    [ 31, 31, ], // July
+    [ 30, 30, ], // June
+    [ 31, 31, ], // May
+    [ 30, 30, ], // April
+    [ 31, 31, ], // March
+    [ 28, 29, ], // February
 ];
 
 /// A date/time represented in UTC.
@@ -153,7 +193,9 @@ impl Utc {
         )
     }
 
-    // TODO: Handle negative seconds since epoch
+    // TODO: Handle negative seconds since epoch.
+    // NOTE: Can I just use the *_REV arrays above instead of the regular
+    //       ones and just perform the same exact processes?
 
     fn from_seconds_since_epoch(seconds_with_nanos: f64) -> Self {
         let total_seconds_since_epoch = seconds_with_nanos as usize;
