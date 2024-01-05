@@ -34,18 +34,18 @@ const MONTHS: [&'static str; 12] = [
 ];
 
 const MONTH_MAX_DAY: [[usize; 2]; 12] = [
-    [ 31, 31, ],
-    [ 28, 29, ],
-    [ 31, 31, ],
-    [ 30, 30, ],
-    [ 31, 31, ],
-    [ 30, 30, ],
-    [ 31, 31, ],
-    [ 31, 31, ],
-    [ 30, 30, ],
-    [ 31, 31, ],
-    [ 30, 30, ],
-    [ 31, 31, ],
+    [ 31, 31, ], // January
+    [ 28, 29, ], // February
+    [ 31, 31, ], // March
+    [ 30, 30, ], // April
+    [ 31, 31, ], // May
+    [ 30, 30, ], // June
+    [ 31, 31, ], // July
+    [ 31, 31, ], // August
+    [ 30, 30, ], // September
+    [ 31, 31, ], // October
+    [ 30, 30, ], // November
+    [ 31, 31, ], // December
 ];
 
 /// A date/time represented in UTC.

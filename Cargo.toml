@@ -2,3 +2,15 @@
 name = "utc"
 version = "0.1.0"
 edition = "2021"
+
+[[bin]]
+name = "now"
+path = "src/bin/now.rs"
+
+[[bin]]
+name = "bench_now"
+path = "src/bin/bench/now.rs"
+
+[[bin]]
+name = "bench_now_single"
+path = "src/bin/bench/now_single.rs"
