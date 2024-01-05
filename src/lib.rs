@@ -1,4 +1,4 @@
-//! Provides access to complex datetimes after 1970-01-01T00:00:00 using only
+//! Computes complex datetimes after 1970-01-01T00:00:00 using only
 //! [SystemTime](`std::time::SystemTime`).
 
 #[cfg(test)]
