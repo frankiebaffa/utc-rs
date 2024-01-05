@@ -153,6 +153,8 @@ impl Utc {
         )
     }
 
+    // TODO: Handle negative seconds since epoch
+
     fn from_seconds_since_epoch(seconds_with_nanos: f64) -> Self {
         let total_seconds_since_epoch = seconds_with_nanos as usize;
         let nano = seconds_with_nanos - total_seconds_since_epoch as f64;
@@ -326,6 +328,8 @@ impl Utc {
     pub fn epoch() -> Self {
         Self::from_seconds_since_epoch(0_f64)
     }
+
+    // TODO: Handle negative additions
 
     pub fn add_seconds(self, seconds: f64) -> Self {
         Self::from_ymdhms(
