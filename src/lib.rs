@@ -49,6 +49,7 @@ const MONTH_MAX_DAY: [[usize; 2]; 12] = [
 ];
 
 /// A date/time represented in UTC.
+#[derive(Clone, Copy, Debug)]
 pub struct Utc {
     year: usize,
     month: usize,
@@ -60,6 +61,21 @@ pub struct Utc {
     second: usize,
     nano: f64,
 }
+
+impl PartialEq<Utc> for Utc {
+    fn eq(&self, other: &Utc) -> bool {
+        self.year.eq(&other.year) &&
+            self.month.eq(&other.month) &&
+            self.month_of_year.eq(other.month_of_year) &&
+            self.day.eq(&other.day) &&
+            self.day_of_week.eq(other.day_of_week) &&
+            self.hour.eq(&other.hour) &&
+            self.minute.eq(&other.minute) &&
+            self.nano.eq(&other.nano)
+    }
+}
+
+impl Eq for Utc {}
 
 impl Utc {
     pub fn is_leap_year(year: usize) -> bool {
@@ -110,7 +126,7 @@ impl Utc {
         self.second as f64 + self.nano
     }
 
-    /// Prints the date/time in yyyy-MM-ddTHH:mm:ss format.
+    /// Gets the date/time in yyyy-MM-ddTHH:mm:ss format.
     pub fn as_rfc3339(&self) -> String {
         format!(
             "{:0>4}-{:0>2}-{:0>2}T{:0>2}:{:0>2}:{:0>2}",
@@ -118,13 +134,22 @@ impl Utc {
         )
     }
 
-    /// Prints the date/time in yyyy-MM-ddTHH:mm:ss.f format with the
+    /// Gets the date/time in yyyy-MM-ddTHH:mm:ss.f format with the
     /// specified precision.
     pub fn as_rfc3339_with_nano(&self, precision: usize) -> String {
         let nano = &format!("{:.precision$}", self.nano)[2..];
         format!(
             "{:0>4}-{:0>2}-{:0>2}T{:0>2}:{:0>2}:{:0>2}.{nano}",
             self.year, self.month, self.day, self.hour, self.minute, self.second
+        )
+    }
+
+    /// Gets the date/time in Day, dd Mon yyyy HH:mm:ss Z format.
+    pub fn as_rfc7231(&self) -> String {
+        format!(
+            "{}, {:0>2} {} {:0>4} {:0>2}:{:0>2}:{:0>2} GMT",
+            &self.day_of_week[0..3], self.day, &self.month_of_year[0..3],
+            self.year, self.hour, self.minute, self.second
         )
     }
 
@@ -295,6 +320,94 @@ impl Utc {
             .unwrap();
         let total_nanos_since_epoch = since.as_secs_f64();
         Self::from_seconds_since_epoch(total_nanos_since_epoch)
+    }
+
+    /// Gets the unix epoch.
+    pub fn epoch() -> Self {
+        Self::from_seconds_since_epoch(0_f64)
+    }
+
+    pub fn add_seconds(self, seconds: f64) -> Self {
+        Self::from_ymdhms(
+            self.year, self.month, self.day, self.hour, self.minute,
+            self.second_with_nano() + seconds
+        )
+    }
+
+    pub fn with_seconds(self, seconds: f64) -> Self {
+        Self::from_ymdhms(
+            self.year, self.month, self.day, self.hour, self.minute, seconds
+        )
+    }
+
+    pub fn add_minutes(self, minutes: usize) -> Self {
+        Self::from_ymdhms(
+            self.year, self.month, self.day, self.hour, self.minute + minutes,
+            self.second_with_nano()
+        )
+    }
+
+    pub fn with_minutes(self, minutes: usize) -> Self {
+        Self::from_ymdhms(
+            self.year, self.month, self.day, self.hour, minutes,
+            self.second_with_nano()
+        )
+    }
+
+    pub fn add_hours(self, hours: usize) -> Self {
+        Self::from_ymdhms(
+            self.year, self.month, self.day, self.hour + hours, self.minute,
+            self.second_with_nano()
+        )
+    }
+
+    pub fn with_hours(self, hours: usize) -> Self {
+        Self::from_ymdhms(
+            self.year, self.month, self.day, hours, self.minute,
+            self.second_with_nano()
+        )
+    }
+
+    pub fn add_days(self, days: usize) -> Self {
+        Self::from_ymdhms(
+            self.year, self.month, self.day + days, self.hour, self.minute,
+            self.second_with_nano()
+        )
+    }
+
+    pub fn with_days(self, days: usize) -> Self {
+        Self::from_ymdhms(
+            self.year, self.month, days, self.hour, self.minute,
+            self.second_with_nano()
+        )
+    }
+
+    pub fn add_months(self, months: usize) -> Self {
+        Self::from_ymdhms(
+            self.year, self.month + months, self.day, self.hour, self.minute,
+            self.second_with_nano()
+        )
+    }
+
+    pub fn with_months(self, months: usize) -> Self {
+        Self::from_ymdhms(
+            self.year, months, self.day, self.hour, self.minute,
+            self.second_with_nano()
+        )
+    }
+
+    pub fn add_years(self, years: usize) -> Self {
+        Self::from_ymdhms(
+            self.year + years, self.month, self.day, self.hour, self.minute,
+            self.second_with_nano()
+        )
+    }
+
+    pub fn with_years(self, years: usize) -> Self {
+        Self::from_ymdhms(
+            years, self.month, self.day, self.hour, self.minute,
+            self.second_with_nano()
+        )
     }
 }
 
