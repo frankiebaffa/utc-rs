@@ -139,6 +139,7 @@ fn month_of_year() {
 #[test]
 fn month_of_year_one_month_after_epoch() {
     let dt = crate::Utc::from_ymd(2024, 2, 1);
+    println!("{}", dt.as_rfc3339());
     assert_eq!("February", dt.month_of_year());
 }
 
@@ -174,40 +175,19 @@ fn before_epoch_underflow_day() {
 
 #[test]
 fn all_days_since_epoch() {
-    let now = crate::Utc::now().with_hours(0).with_minutes(0).with_seconds(0_f64);
-    let mut start = crate::Utc::epoch();
-    while start != now {
-        start = start.add_days(1);
+    let start = crate::Utc::epoch();
+    let mut day = start.day();
+    let now = crate::Utc::now();
+    let end = crate::Utc::from_ymd(now.year(), now.month(), now.day());
+
+    loop {
+        let curr = crate::Utc::from_ymd(start.year(), start.month(), day);
+
+        if curr == end {
+            break;
+        }
+
+        day += 1;
     }
-}
-
-#[test]
-fn add_seconds() {
-    let dt = crate::Utc::from_ymdhms(1993, 1, 31, 23, 59, 59.0_f64)
-        .add_seconds(1_f64);
-    let chk = crate::Utc::from_ymdhms(1993, 2, 1, 0, 0, 0_f64);
-    assert_eq!(chk, dt);
-}
-
-#[test]
-fn with_seconds() {
-    let dt = crate::Utc::from_ymdhms(1993, 2, 1, 0, 0, 0_f64)
-        .with_seconds(1.53_f64);
-    let chk = crate::Utc::from_ymdhms(1993, 2, 1, 0, 0, 1.53_f64);
-    assert_eq!(chk, dt);
-}
-
-#[test]
-fn add_minutes() {
-    let dt = crate::Utc::from_ymdhms(2010, 5, 2, 0, 0, 0_f64)
-        .add_minutes(1);
-    assert_eq!(1, dt.minute());
-}
-
-#[test]
-fn with_minutes() {
-    let dt = crate::Utc::from_ymdhms(2010, 5, 2, 0, 7, 0_f64)
-        .with_minutes(12);
-    assert_eq!(12, dt.minute());
 }
 

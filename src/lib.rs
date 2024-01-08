@@ -4,89 +4,7 @@
 #[cfg(test)]
 mod test;
 
-const EPOCH_YEAR: usize = 1970;
-const EPOCH_MONTH: usize = 1;
-const EPOCH_DAY: usize = 1;
-
-const DAYS: [&'static str; 7] = [
-    "Thursday", // unix epoch started on a thursday
-    "Friday",
-    "Saturday",
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-];
-
-const DAYS_REV: [&'static str; 7] = [
-    "Thursday", // unix epoch started on a thursday
-    "Wednesday",
-    "Tuesday",
-    "Monday",
-    "Sunday",
-    "Saturday",
-    "Friday",
-];
-
-const MONTHS: [&'static str; 12] = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-];
-
-const MONTHS_REV: [&'static str; 12] = [
-    "January",
-    "December",
-    "November",
-    "October",
-    "September",
-    "August",
-    "July",
-    "June",
-    "May",
-    "April",
-    "March",
-    "February",
-];
-
-const MONTH_MAX_DAY: [[usize; 2]; 12] = [
-    [ 31, 31, ], // January
-    [ 28, 29, ], // February
-    [ 31, 31, ], // March
-    [ 30, 30, ], // April
-    [ 31, 31, ], // May
-    [ 30, 30, ], // June
-    [ 31, 31, ], // July
-    [ 31, 31, ], // August
-    [ 30, 30, ], // September
-    [ 31, 31, ], // October
-    [ 30, 30, ], // November
-    [ 31, 31, ], // December
-];
-
-const MONTH_MAX_DAY_REV: [[usize; 2]; 12] = [
-    [ 31, 31, ], // January
-    [ 31, 31, ], // December
-    [ 30, 30, ], // November
-    [ 31, 31, ], // October
-    [ 30, 30, ], // September
-    [ 31, 31, ], // August
-    [ 31, 31, ], // July
-    [ 30, 30, ], // June
-    [ 31, 31, ], // May
-    [ 30, 30, ], // April
-    [ 31, 31, ], // March
-    [ 28, 29, ], // February
-];
+mod statics;
 
 /// A date/time represented in UTC.
 #[derive(Clone, Copy, Debug)]
@@ -118,14 +36,6 @@ impl PartialEq<Utc> for Utc {
 impl Eq for Utc {}
 
 impl Utc {
-    pub fn is_leap_year(year: usize) -> bool {
-        year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
-    }
-
-    pub fn leap_year(&self) -> bool {
-        Self::is_leap_year(self.year)
-    }
-
     pub fn year(&self) -> usize {
         self.year
     }
@@ -193,10 +103,6 @@ impl Utc {
         )
     }
 
-    // TODO: Handle negative seconds since epoch.
-    // NOTE: Can I just use the *_REV arrays above instead of the regular
-    //       ones and just perform the same exact processes?
-
     fn from_seconds_since_epoch(seconds_with_nanos: f64) -> Self {
         let total_seconds_since_epoch = seconds_with_nanos as usize;
         let nano = seconds_with_nanos - total_seconds_since_epoch as f64;
@@ -204,30 +110,43 @@ impl Utc {
         let second = total_seconds_since_epoch - (minute * 60_usize);
         let mut hour = minute / 60_usize;
         minute -= hour * 60_usize;
-        let days = hour / 24_usize;
+        let mut days = hour / 24_usize;
         hour -= days * 24_usize;
 
-        let day_of_week = DAYS[days % DAYS.len()];
+        let day_of_week = statics::D[days % statics::DIW];
 
-        let mut day = EPOCH_DAY;
-        let mut month = EPOCH_MONTH;
-        let mut year = EPOCH_YEAR;
-        for _ in 0..days {
-            let month_days = Self::get_days_in_month(year, month);
-            if day == month_days {
-                day -= month_days - 1;
-                if month == MONTHS.len() {
-                    month -= MONTHS.len() - 1;
-                    year += 1;
-                } else {
-                    month += 1;
-                }
-            } else {
-                day += 1;
+        let mut month = statics::EPOCH_M;
+        let mut year = statics::EPOCH_Y;
+
+        let day;
+
+        // new way
+        loop {
+            let ly = statics::ly(year);
+
+            let days_in_year = statics::DIY[ly];
+            if days > days_in_year {
+                days -= days_in_year;
+                year += 1;
+                continue;
             }
+
+            let days_in_month = statics::DIM[month - 1][ly];
+            if days >= days_in_month {
+                days -= days_in_month;
+                month += 1;
+                if month > 12 {
+                    month = 1;
+                    year += 1;
+                }
+                continue;
+            }
+
+            day = days + 1;
+            break;
         }
 
-        let month_of_year = MONTHS[month - 1];
+        let month_of_year = statics::M[month - 1];
 
         Self {
             year,
@@ -240,10 +159,6 @@ impl Utc {
             second,
             nano,
         }
-    }
-
-    fn get_days_in_month(year: usize, month: usize) -> usize {
-        MONTH_MAX_DAY[month - 1][if Self::is_leap_year(year) { 1 } else { 0 }]
     }
 
     /// Gets a specific date/time.
@@ -260,7 +175,7 @@ impl Utc {
         if day == 0 && month == 0 {
             year -= 1;
             month = 11;
-            day = Self::get_days_in_month(year, month);
+            day = statics::DIM[month - 1][statics::ly(year)];
         } else if month == 0 {
             month = 12;
             year -= 1;
@@ -271,11 +186,11 @@ impl Utc {
             } else {
                 month -= 1;
             }
-            day = Self::get_days_in_month(year, month);
+            day = statics::DIM[month - 1][statics::ly(year)];
         }
 
         // only allow >= epoch
-        if year < 1970 || year == 1970 && month == 0 {
+        if year < 1970 {
             panic!("Date must be >= 1970");
         }
 
@@ -317,7 +232,7 @@ impl Utc {
         // Overflow days into months.
         loop {
             let mut corrected = false;
-            let days_in_month = Self::get_days_in_month(year, month);
+            let days_in_month = statics::DIM[month - 1][statics::ly(year)];
             if day > days_in_month {
                 corrected = true;
                 day -= days_in_month;
@@ -333,15 +248,17 @@ impl Utc {
         }
 
         // calculate days since epoch
-        let mut days = 0;
-        for y in EPOCH_YEAR..(year + 1) {
-            for m in 1..(MONTHS.len() + 1) {
-                if y != year || m != month {
-                    days += Self::get_days_in_month(y, m);
-                } else {
-                    days += day - 1;
-                    break;
-                }
+        let mut days = (statics::EPOCH_Y..year)
+            .into_iter()
+            .map(|y| statics::DIY[statics::ly(y)])
+            .sum::<usize>();
+
+        for m in 1..(statics::MIY + 1) {
+            if m != month {
+                days += statics::DIM[m - 1][statics::ly(year)];
+            } else {
+                days += day - 1;
+                break;
             }
         }
 
@@ -369,91 +286,6 @@ impl Utc {
     /// Gets the unix epoch.
     pub fn epoch() -> Self {
         Self::from_seconds_since_epoch(0_f64)
-    }
-
-    // TODO: Handle negative additions
-
-    pub fn add_seconds(self, seconds: f64) -> Self {
-        Self::from_ymdhms(
-            self.year, self.month, self.day, self.hour, self.minute,
-            self.second_with_nano() + seconds
-        )
-    }
-
-    pub fn with_seconds(self, seconds: f64) -> Self {
-        Self::from_ymdhms(
-            self.year, self.month, self.day, self.hour, self.minute, seconds
-        )
-    }
-
-    pub fn add_minutes(self, minutes: usize) -> Self {
-        Self::from_ymdhms(
-            self.year, self.month, self.day, self.hour, self.minute + minutes,
-            self.second_with_nano()
-        )
-    }
-
-    pub fn with_minutes(self, minutes: usize) -> Self {
-        Self::from_ymdhms(
-            self.year, self.month, self.day, self.hour, minutes,
-            self.second_with_nano()
-        )
-    }
-
-    pub fn add_hours(self, hours: usize) -> Self {
-        Self::from_ymdhms(
-            self.year, self.month, self.day, self.hour + hours, self.minute,
-            self.second_with_nano()
-        )
-    }
-
-    pub fn with_hours(self, hours: usize) -> Self {
-        Self::from_ymdhms(
-            self.year, self.month, self.day, hours, self.minute,
-            self.second_with_nano()
-        )
-    }
-
-    pub fn add_days(self, days: usize) -> Self {
-        Self::from_ymdhms(
-            self.year, self.month, self.day + days, self.hour, self.minute,
-            self.second_with_nano()
-        )
-    }
-
-    pub fn with_days(self, days: usize) -> Self {
-        Self::from_ymdhms(
-            self.year, self.month, days, self.hour, self.minute,
-            self.second_with_nano()
-        )
-    }
-
-    pub fn add_months(self, months: usize) -> Self {
-        Self::from_ymdhms(
-            self.year, self.month + months, self.day, self.hour, self.minute,
-            self.second_with_nano()
-        )
-    }
-
-    pub fn with_months(self, months: usize) -> Self {
-        Self::from_ymdhms(
-            self.year, months, self.day, self.hour, self.minute,
-            self.second_with_nano()
-        )
-    }
-
-    pub fn add_years(self, years: usize) -> Self {
-        Self::from_ymdhms(
-            self.year + years, self.month, self.day, self.hour, self.minute,
-            self.second_with_nano()
-        )
-    }
-
-    pub fn with_years(self, years: usize) -> Self {
-        Self::from_ymdhms(
-            years, self.month, self.day, self.hour, self.minute,
-            self.second_with_nano()
-        )
     }
 }
 
