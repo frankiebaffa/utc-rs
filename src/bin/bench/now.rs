@@ -1,19 +1,20 @@
-const REPEAT: u64 = 1000000;
+const REPEAT: u128 = 1000000;
 
 fn main() {
-
     let durs = (0..REPEAT).into_iter()
-        .map(|i| {
+        .map(|_| {
             let start = std::time::Instant::now();
             utc::Utc::now();
-            (i, (std::time::Instant::now() - start).as_nanos() as u64)
+            (std::time::Instant::now() - start).as_nanos()
         })
-        .collect::<Vec<(u64, u64)>>();
+        .collect::<Vec<u128>>();
 
-    let avg = durs.iter().map(|d| d.1).sum::<u64>() / durs.len() as u64;
+    let avg = durs.iter().map(|d| d).sum::<u128>() / durs.len() as u128;
 
-    let min = durs.iter().map(|d| d.1).min().unwrap();
+    let min = durs.iter().map(|d| d).min().unwrap();
 
-    println!("Total Runs,Average (nS),Minimum (nS)");
-    println!("{REPEAT},{avg},{min}");
+    let max = durs.iter().map(|d| d).max().unwrap();
+
+    println!("Total Runs,Average (ns),Minimum (ns),Maximum (ns)");
+    println!("{REPEAT},{avg},{min},{max}");
 }

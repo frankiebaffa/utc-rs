@@ -14,3 +14,4 @@ path = "src/bin/bench/now.rs"
 [[bin]]
 name = "bench_now_single"
 path = "src/bin/bench/now_single.rs"
+

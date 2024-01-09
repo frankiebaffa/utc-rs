@@ -1,4 +1,23 @@
 #[test]
+fn now() {
+    crate::Utc::now();
+}
+
+#[test]
+fn ord_1() {
+    let a = crate::Utc::now();
+    let b = crate::Utc::now();
+    assert!(a < b);
+}
+
+#[test]
+fn ord_2() {
+    let a = crate::Utc::now();
+    let b = crate::Utc::now();
+    assert!(b > a);
+}
+
+#[test]
 fn standard_date() {
     let dt = crate::Utc::from_ymdhms(2024, 1, 5, 12, 0, 0_f64);
     assert_eq!("2024-01-05T12:00:00", dt.as_rfc3339());
