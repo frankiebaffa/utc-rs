@@ -78,6 +78,21 @@ impl Utc {
         )
     }
 
+    /// Gets the date/time in yyyy-MM-dd format.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let dt = utc::Utc::from_ymdhms(2024, 1, 9, 16, 21, 0.5_f64);
+    /// assert_eq!("2024-01-09", dt.as_ymd());
+    /// ```
+    pub fn as_ymd(&self) -> String {
+        format!(
+            "{:0>4}-{:0>2}-{:0>2}",
+            self.year, self.month, self.day
+        )
+    }
+
     /// Gets the date/time in yyyy-MM-ddTHH:mm:ss.f format with the
     /// specified precision.
     ///
@@ -105,6 +120,35 @@ impl Utc {
     /// ```
     pub fn as_rfc3339_nano(&self) -> String {
         self.as_rfc3339_with_nano(6)
+    }
+
+    /// Gets the date/time/ in yyyy-MM-dd HH:mm:ss.f format with the given
+    /// nanosecond precision.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let dt = utc::Utc::from_ymdhms(2024, 1, 9, 12, 5, 57.2_f64);
+    /// assert_eq!("2024-01-09 12:05:57.200", dt.as_iso8601_with_precision(3));
+    /// ```
+    pub fn as_iso8601_with_precision(&self, precision: usize) -> String {
+        let nano = &format!("{:.precision$}", self.nano)[2..];
+        format!(
+            "{:0>4}-{:0>2}-{:0>2} {:0>2}:{:0>2}:{:0>2}.{nano}",
+            self.year, self.month, self.day, self.hour, self.minute, self.second
+        )
+    }
+
+    /// Gets the date/time/ in yyyy-MM-dd HH:mm:ss.fff format.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let dt = utc::Utc::from_ymdhms(2024, 1, 9, 12, 5, 57.2_f64);
+    /// assert_eq!("2024-01-09 12:05:57.200", dt.as_iso8601());
+    /// ```
+    pub fn as_iso8601(&self) -> String {
+        self.as_iso8601_with_precision(3)
     }
 
     /// Gets the date/time in Day, dd Mon yyyy HH:mm:ss Z format.
