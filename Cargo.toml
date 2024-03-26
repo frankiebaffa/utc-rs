@@ -3,15 +3,18 @@ name = "utc"
 version = "1.0.0"
 edition = "2021"
 
+[dev-dependencies.criterion]
+version = "0.4"
+
+[[bench]]
+name = "now"
+harness = false
+
+[[bench]]
+name = "from_ymdhms"
+harness = false
+
 [[bin]]
 name = "now"
 path = "src/bin/now.rs"
-
-[[bin]]
-name = "bench_now"
-path = "src/bin/bench/now.rs"
-
-[[bin]]
-name = "bench_now_single"
-path = "src/bin/bench/now_single.rs"
 

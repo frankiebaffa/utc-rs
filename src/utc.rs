@@ -63,6 +63,18 @@ impl Utc {
         self.second as f64 + self.nano
     }
 
+    /// Whether or not the year is a leap year.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let dt = utc::Utc::from_ymd(2024, 1, 1);
+    /// assert!(dt.is_leap_year());
+    /// ```
+    pub fn is_leap_year(&self) -> bool {
+        crate::statics::ly(self.year) == 1
+    }
+
     /// Gets the date/time in yyyy-MM-ddTHH:mm:ss format.
     ///
     /// # Examples
@@ -324,7 +336,6 @@ impl Utc {
         }
 
         let mut days = (super::statics::EPOCH_Y..year)
-            .into_iter()
             .map(|y| super::statics::DIY[super::statics::ly(y)])
             .sum::<usize>();
 
