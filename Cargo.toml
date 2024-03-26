@@ -15,6 +15,6 @@ name = "from_ymdhms"
 harness = false
 
 [[bin]]
-name = "now"
+name = "utc-now"
 path = "src/bin/now.rs"
 
